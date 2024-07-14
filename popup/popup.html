@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nextcloud Talk Sender</title>
+  <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+<body>
+  <h1>Nextcloud Talk Sender</h1>
+  <div id="login-form">
+    <input type="text" id="nextcloud-url" placeholder="Nextcloud URL">
+    <button id="login-button">Login with Nextcloud</button>
+  </div>
+  <div id="login-status" style="display: none;">
+    <p>Logging in... Please complete the process in the opened tab.</p>
+  </div>
+  <div id="conversation-list" style="display: none;">
+    <h2>Select conversations to show in context menu:</h2>
+    <ul id="conversations"></ul>
+    <button id="save-button">Save</button>
+  </div>
+  <script src="browser-polyfill.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
