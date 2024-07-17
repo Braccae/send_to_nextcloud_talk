@@ -59,6 +59,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getConversations") {
     fetchConversations().then(sendResponse);
     return true; // Indicates that the response is sent asynchronously
+  } else if (request.action === "testConnection") {
+    testConnection().then(sendResponse);
+    return true; // Indicates that the response is sent asynchronously
   }
 });
 
@@ -74,6 +77,7 @@ async function fetchConversations() {
       return [];
     }
 
+    console.log('Fetching conversations from:', `${nextcloudUrl}/ocs/v2.php/apps/spreed/api/v4/room`);
     const response = await fetch(`${nextcloudUrl}/ocs/v2.php/apps/spreed/api/v4/room`, {
       headers: {
         'OCS-APIRequest': 'true',
@@ -81,10 +85,45 @@ async function fetchConversations() {
       }
     });
     const data = await response.json();
-    conversations = data.ocs.data;
-    return conversations;
+    console.log('Conversations API response:', data);
+    if (data && data.ocs && data.ocs.data) {
+      conversations = data.ocs.data;
+      return conversations;
+    } else {
+      console.error('Unexpected response format:', data);
+      return [];
+    }
   } catch (error) {
     console.error('Error fetching conversations:', error);
     return [];
+  }
+}
+
+async function testConnection() {
+  try {
+    const result = await browser.storage.sync.get(['nextcloudUrl', 'loginName', 'appPassword']);
+    nextcloudUrl = result.nextcloudUrl;
+    loginName = result.loginName;
+    appPassword = result.appPassword;
+
+    if (!nextcloudUrl || !loginName || !appPassword) {
+      return { success: false, error: 'Missing credentials' };
+    }
+
+    const response = await fetch(`${nextcloudUrl}/ocs/v1.php/cloud/capabilities`, {
+      headers: {
+        'OCS-APIRequest': 'true',
+        'Authorization': 'Basic ' + btoa(loginName + ':' + appPassword)
+      }
+    });
+    const data = await response.json();
+    
+    if (data && data.ocs && data.ocs.data) {
+      return { success: true, data: data.ocs.data };
+    } else {
+      return { success: false, error: 'Unexpected response format', data: data };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
   }
 }
